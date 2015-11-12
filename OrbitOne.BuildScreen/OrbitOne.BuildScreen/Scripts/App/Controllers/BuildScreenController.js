@@ -6,7 +6,7 @@
             // reload the page every 2 hours
             setTimeout(function() {
                 location.reload();
-            }, 7200000);
+            }, 14400000);
 
             $scope.isLoading = true;
             $scope.errorRest = false;
