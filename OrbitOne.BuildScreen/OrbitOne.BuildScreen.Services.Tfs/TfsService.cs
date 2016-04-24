@@ -156,6 +156,10 @@ namespace OrbitOne.BuildScreen.Services.Tfs
                         buildInfoDto.PassedNumberOfTests = testResults["PassedTests"];
                         buildInfoDto.TotalNumberOfTests = testResults["TotalTests"];
                     }
+
+                    //buildInfoDto.TestDetail = GetTestDetails(teamProjectNode, testService, build);
+
+
                     //Add last succeeded build if in progress
                     if (build.Status == BuildStatus.InProgress)
                     {
@@ -244,6 +248,36 @@ namespace OrbitOne.BuildScreen.Services.Tfs
                 throw;
             }
             return testResults;
+        }
+
+        private IList<TestDetailDto> GetTestDetails(
+            CatalogNode teamProjectNode,
+            ITestManagementService testService,
+            IBuildDetail build)
+        {
+            var tests = new List<TestDetailDto>();
+            try
+            {
+                var testProject = testService.GetTeamProject(teamProjectNode.Resource.DisplayName);
+                var testRuns = testProject.TestRuns.ByBuild(build.Uri);
+
+                foreach (var testRun in testRuns)
+                {
+                    foreach (var erroringTest in testRun.QueryResults())
+                    {
+                        tests.Add(new TestDetailDto(erroringTest.TestCaseTitle,
+                                          erroringTest.DateStarted,
+                                          erroringTest.DateCompleted));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                LogService.WriteError(e);
+                throw;
+            }
+
+            return tests;
         }
     }
 }
